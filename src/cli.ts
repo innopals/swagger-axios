@@ -25,7 +25,7 @@ async function run() {
           rl.close();
           f();
         });
-      })
+      });
     }
     await codegen(spec, argv);
   } catch (e) {
@@ -34,6 +34,8 @@ async function run() {
   }
 }
 
-export { run }
+export { run };
 
-if (process.mainModule === module) run();
+if (process.mainModule === module) {
+  run();
+}

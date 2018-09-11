@@ -53,7 +53,7 @@ async function codegen(spec: Spec, config: CodeGenConfig) {
       if (schema.properties) {
         const properties = schema.properties;
         Object.keys(properties).forEach(key => {
-          if (!properties[key]) return;
+          if (!properties[key]) { return; }
           requireSchema(properties[key]);
         });
       }
@@ -64,11 +64,11 @@ async function codegen(spec: Spec, config: CodeGenConfig) {
           requireSchema(schema.items);
         }
       }
-    }
+    };
     apiList.forEach(path => {
       let api = spec.paths[path];
       (['get', 'post', 'put', 'delete', 'options', 'head', 'patch'] as (keyof Path)[]).forEach(method => {
-        if (!api[method]) return;
+        if (!api[method]) { return; }
         const op = api[method] as Operation;
         if (op.parameters) {
           op.parameters.forEach(p => requireSchema(p as Schema));
@@ -79,7 +79,7 @@ async function codegen(spec: Spec, config: CodeGenConfig) {
           }
         });
       });
-    })
+    });
 
     // 3. Generate schemas def
     let models = generateAll(requiredSchemas);
@@ -94,7 +94,7 @@ async function codegen(spec: Spec, config: CodeGenConfig) {
     apiList.forEach(apiPath => {
       let api = spec.paths[apiPath];
       (['get', 'post', 'put', 'delete', 'options', 'head', 'patch'] as (keyof Path)[]).forEach(method => {
-        if (!api[method]) return;
+        if (!api[method]) { return; }
         const op = api[method] as Operation;
         if (!op.operationId) {
           throw new Error(`Operation path ${apiPath} method ${method} does not have an operationId.`);
@@ -148,5 +148,5 @@ async function codegen(spec: Spec, config: CodeGenConfig) {
   }
 }
 
-export { codegen }
+export { codegen };
 export default codegen;

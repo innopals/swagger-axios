@@ -5,7 +5,9 @@ export function nomalizeModelName(ref: string) {
     throw new Error(`Unexpected schema ref: ${ref}`);
   }
   let name = ref.substr(14).replace(/[^a-z_0-9]/ig, '_');
-  while (name.endsWith("_")) name = name.substr(0, name.length - 1);
+  while (name.endsWith("_")) {
+    name = name.substr(0, name.length - 1);
+  }
   return name;
 }
 

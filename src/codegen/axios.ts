@@ -19,7 +19,9 @@ instance.interceptors.response.use(
   `;
   }
   let defaultBaseUrl = `${(spec.schemes || [])[0] || 'http'}://${spec.host || 'localhost'}${spec.basePath || ''}`;
-  if (defaultBaseUrl.endsWith("/")) defaultBaseUrl = defaultBaseUrl.substr(0, defaultBaseUrl.length - 1);
+  if (defaultBaseUrl.endsWith("/")) {
+    defaultBaseUrl = defaultBaseUrl.substr(0, defaultBaseUrl.length - 1);
+  }
   return (
     `/* eslint-disable */
 import axios from 'axios';
