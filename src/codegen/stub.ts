@@ -71,30 +71,42 @@ export function generateStub(ctx: StubContext): string {
   if (imports.size > 0) {
     modelImport = `import {${Array.from(imports).map(i => ' ' + nomalizeModelName(i)).join(',')} } from '${ctx.modelPath}';\n`;
   }
-  const args: { name: string, schema?: Schema }[] = [];
+  const args: { name: string, schema: Schema, required?: boolean }[] = [];
   if (parameters) {
     parameters.forEach(parameter => {
-      if (parameter.in === 'body') {
-        const schema = (parameter as BodyParameter).schema;
-        args.push({ name: parameter.name, schema });
-      }
       if (parameter.in === 'query' || parameter.in === 'path') {
-        args.push({ name: parameter.name, schema: parameter as Schema });
+        args.push({ name: parameter.name, required: parameter.required, schema: parameter as Schema });
       }
     });
   }
   const bodyParameter = (parameters || []).find(p => p.in === 'body');
   const queryParameters = (parameters || []).filter(p => p.in === 'query');
 
+  const stubParameters: string[] = [];
+  if (args.length > 0) {
+    let parameter = `{ ${args.map(arg => arg.name).join(", ")} }: {\n    `;
+    parameter += args.map(arg => {
+      return `${arg.name}${arg.required ? "" : "?"}: ${generateSchema(arg.schema, 2)}`;
+    }).join(",\n    ");
+    parameter += "\n  }";
+    stubParameters.push(parameter);
+  }
+  if (bodyParameter) {
+    let parameter = bodyParameter as BodyParameter;
+    if (parameter.schema) {
+      stubParameters.push(`${parameter.name}${parameter.required ? "" : "?"}: ${generateSchema(parameter.schema, 2)}`);
+    }
+  }
+
   return `// @ts-ignore
 import axios from '${ctx.axiosInstancePath}';
 ${modelImport}
-export default function (${args.length === 0 ? "" : `\n  ${args.map(arg => `${arg.name}: ${arg.schema ? (generateSchema(arg.schema, 2) + (arg.schema.required ? "" : " | null | undefined")) : 'any'}`).join(",\n  ")}\n`}): Promise<${getResponseSchema(response.schema, ctx.dataField)}> {
+export default function (${stubParameters.length === 0 ? "" : `\n  ${stubParameters.join(',\n  ')}\n`}): Promise<${getResponseSchema(response.schema, ctx.dataField)}> {
   return axios.request({
     url: \`${ctx.path.replace(/\{/g, '${')}\`,
     method: "${ctx.method}",
     params: ${queryParameters.length > 0 ? `{ ${queryParameters.map(p => p.name).join(", ")} }` : "{}"},
-    data: ${bodyParameter ? bodyParameter.name : '{}'}
+    data: ${bodyParameter ? bodyParameter.name : 'undefined'}
   }) as any;
 }
 `;
