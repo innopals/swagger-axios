@@ -89,9 +89,8 @@ export function generateStub(ctx: StubContext): string {
   return `import axios from '${ctx.axiosInstancePath}';
 ${modelImport}
 export default function (${args.length === 0 ? "" : `\n  ${args.map(arg => `${arg.name}: ${arg.schema ? generateSchema(arg.schema, 2) : 'any'}`).join(",\n  ")}\n`}): Promise<${getResponseSchema(response.schema, ctx.dataField)}> {
-  let url = \`${ctx.path.replace(/\{/g, '${')}\`;
   return axios.request({
-    url,
+    url: \`${ctx.path.replace(/\{/g, '${')}\`,
     method: "${ctx.method}",
     params: ${queryParameters.length > 0 ? `{ ${queryParameters.map(p => p.name).join(", ")} }` : "{}"},
     data: ${bodyParameter ? bodyParameter.name : '{}'}

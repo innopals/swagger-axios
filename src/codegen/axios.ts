@@ -32,6 +32,7 @@ export function setAuthToken(token: string) {
 }
 
 const instance = axios.create({
+  // @ts-ignore
   baseURL: process.env.API_BASE_URL || "${defaultBaseUrl}",
   timeout: 10000
 });

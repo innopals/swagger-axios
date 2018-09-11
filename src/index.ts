@@ -132,7 +132,7 @@ async function codegen(spec: Spec, config: CodeGenConfig) {
     });
     // 6. run tsc
     if (config.js) {
-      let tsconfig = require('./tsconfig-api.json');
+      let tsconfig = require(path.resolve(__dirname, '../tsconfig-api.json'));
       // tsconfig.compilerOptions.rootDir = LOCK_DIR;
       // tsconfig.compilerOptions.outDir = path.join(LOCK_DIR, 'dist');
       fs.writeFileSync(path.join(LOCK_DIR, 'tsconfig.json'), JSON.stringify(tsconfig));
