@@ -59,7 +59,7 @@ export function generateSchema(schema: Schema, indent: number): string {
   const lines: string[] = ['{'];
   const properties = schema.properties || {};
   Object.keys(properties).forEach(propName => {
-    lines.push(`  ${propName}: ${generateSchema(properties[propName], indent + 2)};`);
+    lines.push(`  ${propName}${properties[propName].required ? "" : "?"}: ${generateSchema(properties[propName], indent + 2)};`);
   });
   lines.push('}');
   let br = '\n';

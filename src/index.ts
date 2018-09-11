@@ -2,6 +2,7 @@ import * as rimraf from 'rimraf';
 import * as mkdirp from 'mkdirp';
 import * as fs from 'fs';
 import * as path from 'path';
+import { fork } from 'child_process';
 import { CodeGenConfig } from './config';
 import { Spec, Path, Schema, Operation } from 'swagger-schema-official';
 
@@ -133,9 +134,19 @@ async function codegen(spec: Spec, config: CodeGenConfig) {
     // 6. run tsc
     if (config.js) {
       let tsconfig = require(path.resolve(__dirname, '../tsconfig-api.json'));
-      // tsconfig.compilerOptions.rootDir = LOCK_DIR;
-      // tsconfig.compilerOptions.outDir = path.join(LOCK_DIR, 'dist');
       fs.writeFileSync(path.join(LOCK_DIR, 'tsconfig.json'), JSON.stringify(tsconfig));
+      let tsc = fork(require.resolve('typescript/bin/tsc'), [], {
+        cwd: path.resolve(LOCK_DIR)
+      });
+      await new Promise((f, r) => {
+        tsc.once("exit", (code, signal) => {
+          if (code === 0) {
+            return f();
+          }
+          r(signal);
+        });
+      });
+      fs.unlinkSync(path.join(LOCK_DIR, 'tsconfig.json'));
     }
 
     // Wipe out and replace.

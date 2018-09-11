@@ -42,6 +42,7 @@ instance.interceptors.request.use(
     config.headers.Authorization = "Bearer " + authToken;
     return config;
   },
+  // @ts-ignore
   error => Promise.reject(error),
 );
 ${responseInterceptor}

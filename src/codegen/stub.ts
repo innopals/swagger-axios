@@ -86,9 +86,10 @@ export function generateStub(ctx: StubContext): string {
   const bodyParameter = (parameters || []).find(p => p.in === 'body');
   const queryParameters = (parameters || []).filter(p => p.in === 'query');
 
-  return `import axios from '${ctx.axiosInstancePath}';
+  return `// @ts-ignore
+import axios from '${ctx.axiosInstancePath}';
 ${modelImport}
-export default function (${args.length === 0 ? "" : `\n  ${args.map(arg => `${arg.name}: ${arg.schema ? generateSchema(arg.schema, 2) : 'any'}`).join(",\n  ")}\n`}): Promise<${getResponseSchema(response.schema, ctx.dataField)}> {
+export default function (${args.length === 0 ? "" : `\n  ${args.map(arg => `${arg.name}: ${arg.schema ? (generateSchema(arg.schema, 2) + (arg.schema.required ? "" : " | null | undefined")) : 'any'}`).join(",\n  ")}\n`}): Promise<${getResponseSchema(response.schema, ctx.dataField)}> {
   return axios.request({
     url: \`${ctx.path.replace(/\{/g, '${')}\`,
     method: "${ctx.method}",
