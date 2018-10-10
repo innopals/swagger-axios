@@ -1,5 +1,5 @@
 import { Operation, Schema, BodyParameter } from 'swagger-schema-official';
-import { nomalizeModelName, generateSchema } from './model';
+import { normalizeModelName, generateSchema } from './model';
 
 export interface StubContext {
   path: string;
@@ -69,7 +69,7 @@ export function generateStub(ctx: StubContext): string {
   }
   let modelImport = "";
   if (imports.size > 0) {
-    modelImport = `import {${Array.from(imports).map(i => ' ' + nomalizeModelName(i)).join(',')} } from '${ctx.modelPath}';\n`;
+    modelImport = `import {${Array.from(imports).map(i => ' ' + normalizeModelName(i)).join(',')} } from '${ctx.modelPath}';\n`;
   }
   const args: { name: string, schema: Schema, required?: boolean }[] = [];
   if (parameters) {

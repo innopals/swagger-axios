@@ -1,6 +1,6 @@
 import { Schema } from 'swagger-schema-official';
 
-export function nomalizeModelName(ref: string) {
+export function normalizeModelName(ref: string) {
   if (!ref.startsWith("#/definitions/")) {
     throw new Error(`Unexpected schema ref: ${ref}`);
   }
@@ -14,21 +14,21 @@ export function nomalizeModelName(ref: string) {
 export function generateAll(schemas: { [ref: string]: Schema }): string {
   let blocks: string[] = [];
   Object.keys(schemas).forEach(ref => {
-    blocks.push(generateModel(nomalizeModelName(ref), schemas[ref]));
+    blocks.push(generateModel(normalizeModelName(ref), schemas[ref]));
   });
   return blocks.join('\n\n');
 }
 
 export function generateModel(name: string, schema: Schema): string {
   if (schema.$ref) {
-    return `export type ${nomalizeModelName(name)} = ${nomalizeModelName(schema.$ref)};`;
+    return `export type ${normalizeModelName(name)} = ${normalizeModelName(schema.$ref)};`;
   }
   return `export interface ${(name)} ${generateSchema(schema, 0)};`;
 }
 
 export function generateSchema(schema: Schema, indent: number): string {
   if (schema.$ref) {
-    return nomalizeModelName(schema.$ref);
+    return normalizeModelName(schema.$ref);
   }
   if (schema.allOf && schema.allOf.length > 0) {
     let rs = schema.allOf.map(s => generateSchema(s, indent + 2)).join(" & ");
