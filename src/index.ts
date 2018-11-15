@@ -4,13 +4,17 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { fork } from 'child_process';
 import { CodeGenConfig } from './config';
-import { Spec, Path, Schema, Operation } from 'swagger-schema-official';
+import { Spec, Path, Schema, Operation, Response } from 'swagger-schema-official';
 
 import { generateAll } from './codegen/model';
 import { generateAxiosInstance } from './codegen/axios';
 import { generateStub } from './codegen/stub';
 
 const LOCK_DIR = '.swagger-axios';
+
+function isResponse(arg: any): arg is Response {
+  return arg && !!arg.schema;
+}
 
 async function codegen(spec: Spec, config: CodeGenConfig) {
   if (fs.existsSync(LOCK_DIR)) {
@@ -75,8 +79,9 @@ async function codegen(spec: Spec, config: CodeGenConfig) {
           op.parameters.forEach(p => requireSchema(p as Schema));
         }
         Object.keys(op.responses).forEach(key => {
-          if (op.responses[key].schema) {
-            requireSchema(op.responses[key].schema!);
+          const response = op.responses[key];
+          if (isResponse(response) && response.schema) {
+            requireSchema(response.schema!);
           }
         });
       });
