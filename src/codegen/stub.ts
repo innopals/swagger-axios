@@ -1,5 +1,12 @@
-import { Operation, Schema, BodyParameter, PathParameter, QueryParameter, Response } from 'swagger-schema-official';
-import { normalizeModelName, generateSchema } from './model';
+import {
+  Operation,
+  Schema,
+  BodyParameter,
+  PathParameter,
+  QueryParameter,
+  Response,
+} from "swagger-schema-official";
+import { normalizeModelName, generateSchema } from "./model";
 
 export interface StubContext {
   path: string;
@@ -12,7 +19,7 @@ export interface StubContext {
 
 function getResponseSchema(schema?: Schema, dataField?: string): string {
   if (!schema) {
-    return 'any';
+    return "any";
   }
   if (!dataField || !schema.properties || !schema.properties[dataField]) {
     return generateSchema(schema, 0);
@@ -25,11 +32,11 @@ function getImports(imports: Set<string>, schema: Schema): void {
     imports.add(schema.$ref);
   }
   if (schema.allOf) {
-    schema.allOf.forEach(s => getImports(imports, s));
+    schema.allOf.forEach((s) => getImports(imports, s));
   }
   if (schema.properties) {
     const properties = schema.properties;
-    Object.keys(properties).forEach(key => {
+    Object.keys(properties).forEach((key) => {
       if (!properties[key]) {
         return;
       }
@@ -38,7 +45,7 @@ function getImports(imports: Set<string>, schema: Schema): void {
   }
   if (schema.items) {
     if (Array.isArray(schema.items)) {
-      schema.items.forEach(s => getImports(imports, s));
+      schema.items.forEach((s) => getImports(imports, s));
     } else {
       getImports(imports, schema.items);
     }
@@ -50,13 +57,13 @@ function getImports(imports: Set<string>, schema: Schema): void {
 // }
 
 function isBodyParameter(p: any): p is BodyParameter {
-  return p.in === 'body';
+  return p.in === "body";
 }
 function isPathParameter(p: any): p is PathParameter {
-  return p.in === 'path';
+  return p.in === "path";
 }
 function isQueryParameter(p: any): p is QueryParameter {
-  return p.in === 'query';
+  return p.in === "query";
 }
 function isResponse(arg: any): arg is Response {
   return arg && !!arg.schema;
@@ -66,7 +73,7 @@ export function generateStub(ctx: StubContext): string {
   const imports = new Set<string>();
   const parameters = ctx.op.parameters;
   if (parameters) {
-    parameters.forEach(parameter => {
+    parameters.forEach((parameter) => {
       if (isBodyParameter(parameter)) {
         const schema = (parameter as BodyParameter).schema;
         if (schema) {
@@ -83,13 +90,19 @@ export function generateStub(ctx: StubContext): string {
   getImports(imports, response.schema);
   let modelImport = "";
   if (imports.size > 0) {
-    modelImport = `import {${Array.from(imports).map(i => ' ' + normalizeModelName(i)).join(',')} } from '${ctx.modelPath}';\n`;
+    modelImport = `import {${Array.from(imports)
+      .map((i) => " " + normalizeModelName(i))
+      .join(",")} } from '${ctx.modelPath}';\n`;
   }
-  const args: { name: string, schema: Schema, required?: boolean }[] = [];
+  const args: { name: string; schema: Schema; required?: boolean }[] = [];
   if (parameters) {
-    parameters.forEach(parameter => {
+    parameters.forEach((parameter) => {
       if (isQueryParameter(parameter) || isPathParameter(parameter)) {
-        args.push({ name: parameter.name, required: parameter.required, schema: parameter as Schema });
+        args.push({
+          name: parameter.name,
+          required: parameter.required,
+          schema: parameter as Schema,
+        });
       }
     });
   }
@@ -98,29 +111,45 @@ export function generateStub(ctx: StubContext): string {
 
   const stubParameters: string[] = [];
   if (args.length > 0) {
-    let parameter = `{ ${args.map(arg => arg.name).join(", ")} }: {\n    `;
-    parameter += args.map(arg => {
-      return `${arg.name}${arg.required ? "" : "?"}: ${generateSchema(arg.schema, 2)}`;
-    }).join(",\n    ");
+    let parameter = `{ ${args.map((arg) => arg.name).join(", ")} }: {\n    `;
+    parameter += args
+      .map((arg) => {
+        return `${arg.name}${arg.required ? "" : "?"}: ${generateSchema(
+          arg.schema,
+          2
+        )}`;
+      })
+      .join(",\n    ");
     parameter += "\n  }";
     stubParameters.push(parameter);
   }
   if (bodyParameter) {
     let parameter = bodyParameter as BodyParameter;
     if (parameter.schema) {
-      stubParameters.push(`${parameter.name}${parameter.required ? "" : "?"}: ${generateSchema(parameter.schema, 2)}`);
+      stubParameters.push(
+        `${parameter.name}${parameter.required ? "" : "?"}: ${generateSchema(
+          parameter.schema,
+          2
+        )}`
+      );
     }
   }
 
   return `// @ts-ignore
 import axios from '${ctx.axiosInstancePath}';
 ${modelImport}
-export default function (${stubParameters.length === 0 ? "" : `\n  ${stubParameters.join(',\n  ')}\n`}): Promise<${getResponseSchema(response.schema, ctx.dataField)}> {
+export default function (${
+    stubParameters.length === 0 ? "" : `\n  ${stubParameters.join(",\n  ")}\n`
+  }): Promise<${getResponseSchema(response.schema, ctx.dataField)}> {
   return axios.request({
-    url: \`${ctx.path.replace(/\{/g, '${')}\`,
+    url: \`${ctx.path.replace(/\{/g, "${")}\`,
     method: "${ctx.method}",
-    params: ${queryParameters.length > 0 ? `{ ${queryParameters.map(p => p.name).join(", ")} }` : "{}"},
-    data: ${bodyParameter ? bodyParameter.name : 'undefined'}
+    params: ${
+      queryParameters.length > 0
+        ? `{ ${queryParameters.map((p) => p.name).join(", ")} }`
+        : "{}"
+    },
+    data: ${bodyParameter ? bodyParameter.name : "undefined"}
   }) as any;
 }
 `;

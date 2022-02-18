@@ -1,7 +1,10 @@
-import { Spec } from 'swagger-schema-official';
-import { CodeGenConfig } from '../config';
+import { Spec } from "swagger-schema-official";
+import { CodeGenConfig } from "../config";
 
-export function generateAxiosInstance(spec: Spec, config: CodeGenConfig): string {
+export function generateAxiosInstance(
+  spec: Spec,
+  config: CodeGenConfig
+): string {
   let responseInterceptor = "";
   if (config.resultDataField && config.resultErrorField) {
     responseInterceptor = `
@@ -18,12 +21,13 @@ instance.interceptors.response.use(
 );
   `;
   }
-  let defaultBaseUrl = `${(spec.schemes || [])[0] || 'http'}://${spec.host || 'localhost'}${spec.basePath || ''}`;
+  let defaultBaseUrl = `${(spec.schemes || [])[0] || "http"}://${
+    spec.host || "localhost"
+  }${spec.basePath || ""}`;
   if (defaultBaseUrl.endsWith("/")) {
     defaultBaseUrl = defaultBaseUrl.substr(0, defaultBaseUrl.length - 1);
   }
-  return (
-    `/* eslint-disable */
+  return `/* eslint-disable */
 import axios from 'axios';
 
 let authToken = "";
@@ -47,6 +51,5 @@ instance.interceptors.request.use(
 );
 ${responseInterceptor}
 export default instance;
-`
-  );
+`;
 }
